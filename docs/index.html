@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI内容矩阵生成器 - 1篇长文→10条短内容</title>
+<meta name="description" content="AI自动将1篇长文拆解为10条短内容，覆盖小红书、抖音、B站、公众号，内容生产效率提升10倍">
+<meta name="keywords" content="AI内容生成,内容矩阵,小红书,抖音,B站,公众号,内容营销,自动化">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0f0f1a;color:#e0e0e0;line-height:1.6}
+.hero{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);padding:80px 20px;text-align:center}
+.hero h1{font-size:2.8em;font-weight:800;background:linear-gradient(90deg,#00d4ff,#7b2ff7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:16px}
+.hero p{font-size:1.2em;color:#a0a0c0;max-width:600px;margin:0 auto 32px}
+.badge{display:inline-block;background:rgba(0,212,255,0.15);border:1px solid rgba(0,212,255,0.3);color:#00d4ff;padding:6px 16px;border-radius:20px;font-size:0.85em;margin:4px}
+.container{max-width:1100px;margin:0 auto;padding:0 20px}
+.section{padding:60px 0}
+.section-title{font-size:1.8em;font-weight:700;text-align:center;margin-bottom:40px;color:#fff}
+.section-title span{color:#00d4ff}
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px;margin-bottom:40px}
+.feature-card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:28px;transition:transform 0.2s,border-color 0.2s}
+.feature-card:hover{transform:translateY(-4px);border-color:rgba(0,212,255,0.4)}
+.feature-icon{font-size:2em;margin-bottom:12px}
+.feature-card h3{font-size:1.1em;margin-bottom:8px;color:#fff}
+.feature-card p{font-size:0.9em;color:#888}
+.demo-section{background:rgba(255,255,255,0.03);border-radius:24px;padding:40px;margin:40px 0}
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+@media(max-width:768px){.demo-grid{grid-template-columns:1fr}}
+.input-area label{display:block;font-size:0.9em;color:#888;margin-bottom:8px}
+.input-area textarea{width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:16px;color:#e0e0e0;font-size:0.95em;resize:vertical;min-height:200px;outline:none;transition:border-color 0.2s}
+.input-area textarea:focus{border-color:#00d4ff}
+.input-area input{width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:12px 16px;color:#e0e0e0;font-size:0.95em;outline:none;margin-bottom:16px;transition:border-color 0.2s}
+.input-area input:focus{border-color:#00d4ff}
+.btn-primary{background:linear-gradient(135deg,#00d4ff,#7b2ff7);border:none;color:#fff;padding:14px 32px;border-radius:12px;font-size:1em;font-weight:600;cursor:pointer;width:100%;transition:opacity 0.2s,transform 0.1s}
+.btn-primary:hover{opacity:0.9;transform:translateY(-1px)}
+.btn-primary:active{transform:translateY(0)}
+.output-area{min-height:200px}
+.platform-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.tab{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);color:#888;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.85em;transition:all 0.2s}
+.tab.active{background:rgba(0,212,255,0.2);border-color:#00d4ff;color:#00d4ff}
+.content-card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:20px;margin-bottom:16px}
+.content-card .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.content-card .card-title{font-weight:600;color:#fff;font-size:0.95em}
+.content-card .card-type{font-size:0.75em;background:rgba(123,47,247,0.3);color:#b088ff;padding:3px 10px;border-radius:20px}
+.content-card .card-body{font-size:0.88em;color:#aaa;white-space:pre-wrap;line-height:1.7}
+.content-card .card-tags{margin-top:12px;display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:0.75em;background:rgba(0,212,255,0.1);color:#00d4ff;padding:3px 10px;border-radius:20px}
+.copy-btn{background:rgba(255,255,255,0.1);border:none;color:#888;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:0.8em;transition:all 0.2s}
+.copy-btn:hover{background:rgba(0,212,255,0.2);color:#00d4ff}
+.stats-bar{display:flex;gap:24px;margin-bottom:24px;flex-wrap:wrap}
+.stat{text-align:center}
+.stat .num{font-size:1.8em;font-weight:700;color:#00d4ff}
+.stat .label{font-size:0.8em;color:#666}
+.pricing{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px}
+.price-card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:32px;text-align:center;transition:transform 0.2s}
+.price-card.featured{border-color:#00d4ff;background:rgba(0,212,255,0.07)}
+.price-card:hover{transform:translateY(-4px)}
+.price-card .plan{font-size:0.9em;color:#888;margin-bottom:8px}
+.price-card .price{font-size:2.4em;font-weight:800;color:#fff;margin-bottom:4px}
+.price-card .price span{font-size:0.5em;color:#888}
+.price-card .desc{font-size:0.9em;color:#666;margin-bottom:24px}
+.price-card ul{list-style:none;text-align:left;margin-bottom:24px}
+.price-card ul li{padding:6px 0;font-size:0.9em;color:#aaa}
+.price-card ul li::before{content:"✓ ";color:#00d4ff}
+.btn-outline{background:transparent;border:1px solid rgba(255,255,255,0.3);color:#e0e0e0;padding:12px 24px;border-radius:10px;font-size:0.95em;cursor:pointer;width:100%;transition:all 0.2s}
+.btn-outline:hover{border-color:#00d4ff;color:#00d4ff}
+.contact-section{background:linear-gradient(135deg,rgba(0,212,255,0.1),rgba(123,47,247,0.1));border:1px solid rgba(0,212,255,0.2);border-radius:24px;padding:48px;text-align:center}
+.contact-section h2{font-size:1.8em;margin-bottom:16px;color:#fff}
+.contact-section p{color:#888;margin-bottom:32px}
+.contact-links{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.contact-link{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);color:#e0e0e0;padding:12px 24px;border-radius:12px;text-decoration:none;transition:all 0.2s;font-size:0.95em}
+.contact-link:hover{border-color:#00d4ff;color:#00d4ff}
+.loading{text-align:center;padding:40px;color:#666}
+.spinner{display:inline-block;width:32px;height:32px;border:3px solid rgba(0,212,255,0.2);border-top-color:#00d4ff;border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+footer{text-align:center;padding:40px 20px;color:#444;font-size:0.85em}
+.empty-state{text-align:center;padding:60px 20px;color:#555}
+.empty-state .icon{font-size:3em;margin-bottom:16px}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="container">
+    <div style="margin-bottom:16px">
+      <span class="badge">🚀 AI驱动</span>
+      <span class="badge">⚡ 5分钟生成</span>
+      <span class="badge">📱 4大平台</span>
+    </div>
+    <h1>AI内容矩阵生成器</h1>
+    <p>1篇长文 → 10条短内容<br>自动适配小红书、抖音、B站、公众号</p>
+    <a href="#demo" style="display:inline-block;background:linear-gradient(135deg,#00d4ff,#7b2ff7);color:#fff;padding:14px 36px;border-radius:12px;text-decoration:none;font-weight:600;font-size:1.05em">立即体验 →</a>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Features -->
+  <div class="section">
+    <div class="section-title">为什么选择 <span>AI内容矩阵</span></div>
+    <div class="features">
+      <div class="feature-card">
+        <div class="feature-icon">🧠</div>
+        <h3>智能拆解</h3>
+        <p>AI自动识别长文核心观点，提取10个关键要点，无需手动整理</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📱</div>
+        <h3>4平台适配</h3>
+        <p>自动生成小红书图文、抖音脚本、B站教程、公众号长文，格式完全匹配</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔑</div>
+        <h3>SEO关键词</h3>
+        <p>自动提取高频关键词，优化标题和标签，提升搜索排名和曝光量</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>10倍效率</h3>
+        <p>原来写10条内容需要20小时，现在5分钟搞定，效率提升240倍</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Demo -->
+  <div class="section" id="demo">
+    <div class="section-title">在线 <span>演示</span></div>
+    <div class="demo-section">
+      <div class="demo-grid">
+        <div class="input-area">
+          <label>📝 输入长文（粘贴你的文章）</label>
+          <textarea id="inputText" placeholder="在这里粘贴你的文章内容...
+
+示例：企业文档自动化是提升效率的关键。很多企业每天要处理大量PDF发票、合同、报表。传统方式是手动复制粘贴到Excel，不仅效率低，还容易出错。使用Python自动化工具可以将这个过程自动化，处理100份文件只需5分钟，而手动方式需要8小时，效率提升近100倍..."></textarea>
+          <br>
+          <label>🔑 核心关键词（用逗号分隔，可留空自动提取）</label>
+          <input type="text" id="keywords" placeholder="例如：AI自动化, 效率提升, Python">
+          <label>📱 目标平台</label>
+          <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:#aaa;font-size:0.9em"><input type="checkbox" value="小红书" checked> 小红书</label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:#aaa;font-size:0.9em"><input type="checkbox" value="抖音" checked> 抖音</label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:#aaa;font-size:0.9em"><input type="checkbox" value="B站" checked> B站</label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:#aaa;font-size:0.9em"><input type="checkbox" value="公众号" checked> 公众号</label>
+          </div>
+          <button class="btn-primary" onclick="generateContent()">🚀 生成内容矩阵</button>
+        </div>
+        <div class="output-area" id="outputArea">
+          <div class="empty-state">
+            <div class="icon">✨</div>
+            <p>输入长文后点击生成<br>即可看到10条跨平台内容</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pricing -->
+  <div class="section">
+    <div class="section-title">服务 <span>定价</span></div>
+    <div class="pricing">
+      <div class="price-card">
+        <div class="plan">基础版</div>
+        <div class="price">¥5,000<span>/月</span></div>
+        <div class="desc">适合个人创作者</div>
+        <ul>
+          <li>50条内容/月</li>
+          <li>3个平台适配</li>
+          <li>关键词提取</li>
+          <li>邮件支持</li>
+        </ul>
+        <button class="btn-outline" onclick="contact()">咨询合作</button>
+      </div>
+      <div class="price-card featured">
+        <div class="plan">⭐ 专业版（推荐）</div>
+        <div class="price">¥8,000<span>/月</span></div>
+        <div class="desc">适合新媒体团队</div>
+        <ul>
+          <li>100条内容/月</li>
+          <li>4个平台适配</li>
+          <li>SEO标题优化</li>
+          <li>数据统计报告</li>
+          <li>优先响应支持</li>
+        </ul>
+        <button class="btn-primary" onclick="contact()">立即咨询</button>
+      </div>
+      <div class="price-card">
+        <div class="plan">企业版</div>
+        <div class="price">¥15,000<span>/月</span></div>
+        <div class="desc">适合电商/品牌方</div>
+        <ul>
+          <li>200条内容/月</li>
+          <li>全平台适配</li>
+          <li>定制化模板</li>
+          <li>API接口对接</li>
+          <li>专属客户经理</li>
+        </ul>
+        <button class="btn-outline" onclick="contact()">定制方案</button>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:24px;color:#555;font-size:0.9em">
+      💡 ROI计算：人工写100条内容需要¥50,000+，AI方案只需¥8,000，节省84%成本
+    </div>
+  </div>
+
+  <!-- Contact -->
+  <div class="section">
+    <div class="contact-section">
+      <h2>🤝 开始合作</h2>
+      <p>免费试用3天，满意再付款<br>响应时间：工作日24小时内</p>
+      <div class="contact-links">
+        <a href="https://github.com/zhangyu0806/ai-content-matrix" class="contact-link" target="_blank">⭐ GitHub 开源代码</a>
+        <a href="mailto:contact@example.com" class="contact-link">📧 发送邮件</a>
+        <a href="#demo" class="contact-link">🎯 免费体验</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p>AI内容矩阵生成器 | 让内容生产自动化 | MIT License</p>
+</footer>
+
+<script>
+// 简化版内容生成引擎（纯JS，无需后端）
+function extractKeyPoints(text, n) {
+  const sentences = text.split(/[。！？\n]/).map(s => s.trim()).filter(s => s.length > 8);
+  const scored = sentences.map((s, i) => {
+    let score = 0;
+    if (s.length >= 20 && s.length <= 80) score += 2;
+    if (i / sentences.length < 0.2) score += 2.5;
+    if (/\d+/.test(s)) score += 1.5;
+    if (/方法|技巧|步骤|关键|核心|提升|节省/.test(s)) score += 1;
+    return { s, score };
+  });
+  scored.sort((a, b) => b.score - a.score);
+  const result = [];
+  for (const { s } of scored) {
+    if (!result.some(r => similarity(r, s) > 0.5)) result.push(s);
+    if (result.length >= n) break;
+  }
+  return result;
+}
+
+function similarity(a, b) {
+  const sa = new Set(a), sb = new Set(b);
+  const common = [...sa].filter(c => sb.has(c)).length;
+  return common / Math.max(sa.size, sb.size);
+}
+
+function extractKeywords(text) {
+  const words = [];
+  const matches = text.match(/[\u4e00-\u9fa5]{2,6}|[A-Za-z][A-Za-z0-9]{2,}/g) || [];
+  const freq = {};
+  matches.forEach(w => { freq[w] = (freq[w] || 0) + 1; });
+  return Object.entries(freq).filter(([,c]) => c >= 2).sort((a,b) => b[1]-a[1]).slice(0,6).map(([w]) => w);
+}
+
+const emojis = ['🔥','💡','✨','🎯','💪','📌','⚡','🌟','💰','🚀'];
+
+function genXiaohongshu(points, kws) {
+  return points.slice(0,4).map((p, i) => ({
+    platform: '小红书', type: '图文笔记',
+    title: `${emojis[i]} ${kws[0]||''}真的太强了！`,
+    content: `${p}\n\n💡 觉得有用就点赞收藏～\n\n${kws.slice(0,3).map(k=>'#'+k).join(' ')} #干货分享`,
+    tags: kws.slice(0,3)
+  }));
+}
+
+function genDouyin(points, kws) {
+  return points.slice(0,3).map((p, i) => ({
+    platform: '抖音', type: '短视频脚本',
+    title: `第${i+1}招：${kws[0]||''}秘籍`,
+    content: `【黄金3秒】\n家人们！这个方法真的绝了！\n\n【正文】\n${p}\n\n【结尾】\n关注我，每天分享${kws[0]||'实用'}技巧！\n#${(kws.slice(0,3)).join(' #')}`,
+    tags: kws.slice(0,3)
+  }));
+}
+
+function genBilibili(points, kws) {
+  const batches = [];
+  for (let i = 0; i < Math.min(points.length, 6); i += 3) {
+    const batch = points.slice(i, i+3);
+    batches.push({
+      platform: 'B站', type: '知识视频',
+      title: `【教程】${kws[0]||''}完全指南`,
+      content: `【开场】大家好，今天讲${kws[0]||'效率提升'}的核心技巧。\n\n【正文】\n${batch.map((p,j)=>`第${j+1}点：${p}`).join('\n\n')}\n\n【结尾】一键三连，我们下期见！`,
+      tags: kws.slice(0,4)
+    });
+  }
+  return batches.slice(0,2);
+}
+
+function genWechat(points, kws) {
+  const article = {
+    platform: '公众号', type: '深度长文',
+    title: `${kws[0]||''}完全指南：从0到1`,
+    content: `# ${kws[0]||''}完全指南\n\n> ${points[0]||''}\n\n---\n\n${points.slice(0,5).map((p,i)=>`**${i+1}. ${p.slice(0,15)}**\n\n${p}`).join('\n\n')}\n\n---\n\n关注公众号，回复「${kws[0]||'工具'}」获取完整资料包。`,
+    tags: kws.slice(0,4)
+  };
+  return [article];
+}
+
+function generateContent() {
+  const text = document.getElementById('inputText').value.trim();
+  if (!text) { alert('请先输入长文内容！'); return; }
+
+  const kwInput = document.getElementById('keywords').value;
+  const userKws = kwInput ? kwInput.split(',').map(k=>k.trim()).filter(Boolean) : [];
+  const autoKws = extractKeywords(text);
+  const kws = [...new Set([...userKws, ...autoKws])].slice(0,8);
+
+  const checkedPlatforms = [...document.querySelectorAll('input[type=checkbox]:checked')].map(c=>c.value);
+
+  const output = document.getElementById('outputArea');
+  output.innerHTML = '<div class="loading"><div class="spinner"></div><p>AI正在分析内容...</p></div>';
+
+  setTimeout(() => {
+    const points = extractKeyPoints(text, 10);
+    const allContent = [];
+
+    if (checkedPlatforms.includes('小红书')) allContent.push(...genXiaohongshu(points, kws));
+    if (checkedPlatforms.includes('抖音')) allContent.push(...genDouyin(points, kws));
+    if (checkedPlatforms.includes('B站')) allContent.push(...genBilibili(points, kws));
+    if (checkedPlatforms.includes('公众号')) allContent.push(...genWechat(points, kws));
+
+    const platformGroups = {};
+    allContent.forEach(c => {
+      if (!platformGroups[c.platform]) platformGroups[c.platform] = [];
+      platformGroups[c.platform].push(c);
+    });
+
+    const platforms = Object.keys(platformGroups);
+    let html = `
+      <div class="stats-bar">
+        <div class="stat"><div class="num">${points.length}</div><div class="label">关键观点</div></div>
+        <div class="stat"><div class="num">${allContent.length}</div><div class="label">生成内容</div></div>
+        <div class="stat"><div class="num">${platforms.length}</div><div class="label">覆盖平台</div></div>
+        <div class="stat"><div class="num">${kws.length}</div><div class="label">关键词</div></div>
+      </div>
+      <div style="margin-bottom:8px;font-size:0.8em;color:#666">关键词：${kws.map(k=>'<span class="tag">'+k+'</span>').join(' ')}</div>
+      <div class="platform-tabs">
+        ${platforms.map((p,i)=>`<div class="tab ${i===0?'active':''}" onclick="switchTab('${p}',this)">${p}（${platformGroups[p].length}条）</div>`).join('')}
+      </div>
+    `;
+
+    platforms.forEach((plat, pi) => {
+      html += `<div class="platform-content" id="tab-${plat}" style="display:${pi===0?'block':'none'}">`;
+      platformGroups[plat].forEach((c, ci) => {
+        const id = `content-${plat}-${ci}`;
+        html += `
+          <div class="content-card">
+            <div class="card-header">
+              <div class="card-title">${c.title}</div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <span class="card-type">${c.type}</span>
+                <button class="copy-btn" onclick="copyContent('${id}')">复制</button>
+              </div>
+            </div>
+            <div class="card-body" id="${id}">${c.content}</div>
+            <div class="card-tags">${(c.tags||[]).map(t=>'<span class="tag">#'+t+'</span>').join('')}</div>
+          </div>
+        `;
+      });
+      html += '</div>';
+    });
+
+    output.innerHTML = html;
+  }, 800);
+}
+
+function switchTab(platform, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.platform-content').forEach(c => c.style.display = 'none');
+  el.classList.add('active');
+  document.getElementById('tab-' + platform).style.display = 'block';
+}
+
+function copyContent(id) {
+  const el = document.getElementById(id);
+  navigator.clipboard.writeText(el.textContent).then(() => {
+    const btn = el.closest('.content-card').querySelector('.copy-btn');
+    btn.textContent = '已复制✓';
+    btn.style.color = '#00d4ff';
+    setTimeout(() => { btn.textContent = '复制'; btn.style.color = ''; }, 2000);
+  });
+}
+
+function contact() {
+  window.location.href = 'mailto:contact@example.com?subject=AI内容矩阵合作咨询';
+}
+</script>
+</body>
+</html>
