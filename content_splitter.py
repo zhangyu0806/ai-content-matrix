@@ -1,19 +1,24 @@
 #!/usr/bin/env python3
 """
-AI内容拆解引擎 v2.0
-功能：1篇长文 → 10+条短内容（小红书/抖音/B站/公众号）
+AI内容拆解引擎 v3.0
+功能：1篇长文 → 15+条短内容（小红书/抖音/B站/公众号/知乎/微博）
 特性：
   - 智能关键观点提取（TF-IDF + 位置权重 + 语义规则）
   - SEO关键词自动提取
-  - 4平台适配（小红书/抖音/B站/公众号）
+  - 6平台适配（小红书/抖音/B站/公众号/知乎/微博）
   - 标题优化（多种风格模板）
-  - JSON/Markdown 双格式输出
+  - JSON/Markdown/CSV 三格式输出
+  - 批量处理模式（多篇文章一次生成）
+  - 内容日历生成
 """
 
 import json
 import re
 import math
+import csv
+import io
 from collections import Counter
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Dict, Tuple, Optional
 
@@ -474,6 +479,127 @@ class PlatformAdapter:
 
         return contents
 
+    @staticmethod
+    def zhihu(key_points: List[str], keywords: List[str], stats: List[Dict] = None) -> List[Dict]:
+        """知乎格式：专业深度、数据支撑、回答体"""
+        contents = []
+
+        # 知乎回答（适合问答形式）
+        if key_points:
+            title = f"如何评价{keywords[0] if keywords else '这个方法'}？有哪些实用技巧？"
+
+            points_text = ""
+            for i, p in enumerate(key_points[:5], 1):
+                points_text += f"\n**{i}. {p[:30]}**\n\n{p}\n"
+
+            data_ref = ""
+            if stats:
+                data_ref = "\n---\n\n**数据参考：**\n"
+                for s in stats[:2]:
+                    data_ref += f"- {s['sentence']}\n"
+
+            answer = f"""谢邀。
+
+这个问题我来回答一下，正好最近在研究{keywords[0] if keywords else '相关领域'}。
+
+先说结论：**掌握正确的方法，效率可以提升10倍以上。**
+
+下面展开说：
+{points_text}
+{data_ref}
+---
+
+以上是我的实践经验，希望对你有帮助。
+
+如果觉得有用，点个赞同让更多人看到 👍
+
+*关注我，持续分享{keywords[0] if keywords else '效率提升'}干货。*"""
+
+            contents.append({
+                "platform": "知乎",
+                "type": "专业回答",
+                "title": title,
+                "content": answer,
+                "tags": keywords[:5],
+                "tips": "发布建议：找相关问题回答，或自问自答。知乎重视专业度和数据支撑。"
+            })
+
+        # 知乎想法（短内容）
+        if len(key_points) >= 2:
+            thought = f"""💡 今天的一个发现：
+
+{key_points[0]}
+
+延伸思考：{key_points[1][:50]}...
+
+{''.join(f'#{kw} ' for kw in keywords[:3])}"""
+
+            contents.append({
+                "platform": "知乎",
+                "type": "知乎想法",
+                "title": f"关于{keywords[0] if keywords else '效率'}的思考",
+                "content": thought,
+                "tags": keywords[:3],
+                "tips": "想法适合碎片化观点输出，保持简短有力"
+            })
+
+        return contents
+
+    @staticmethod
+    def weibo(key_points: List[str], keywords: List[str], stats: List[Dict] = None) -> List[Dict]:
+        """微博格式：话题标签、@互动、短平快"""
+        contents = []
+        emojis = ['🔥', '💡', '✨', '🎯', '💪', '📌', '⚡', '🌟']
+
+        for i, point in enumerate(key_points[:3]):
+            emoji = emojis[i % len(emojis)]
+            topic = f"#{keywords[0] if keywords else '效率提升'}#" if keywords else "#干货分享#"
+
+            # 微博140字限制风格
+            short_point = point[:100] + ("..." if len(point) > 100 else "")
+
+            post = f"""{topic} {emoji}
+
+{short_point}
+
+{''.join(f'#{kw}# ' for kw in keywords[:3])}
+#干货分享# #效率工具#
+
+转发给需要的朋友～"""
+
+            contents.append({
+                "platform": "微博",
+                "type": "微博正文",
+                "title": f"{emoji} {point[:30]}",
+                "content": post,
+                "tags": keywords[:3] + ["干货分享"],
+                "tips": "发布建议：配图+话题标签，@相关大V增加曝光"
+            })
+
+        # 微博长文（如果内容足够）
+        if len(key_points) >= 4:
+            long_title = f"【干货】{keywords[0] if keywords else '效率'}提升完全指南"
+            points_text = "\n".join(f"✅ {p}" for p in key_points[:6])
+
+            long_post = f"""{long_title}
+
+{points_text}
+
+---
+觉得有用就转发收藏吧！
+{''.join(f'#{kw}# ' for kw in keywords[:4])}"""
+
+            contents.append({
+                "platform": "微博",
+                "type": "微博长文/头条文章",
+                "title": long_title,
+                "content": long_post,
+                "tags": keywords[:4],
+                "tips": "长文适合深度内容，配合短微博引流"
+            })
+
+        return contents
+
 
 # ============================================================
 # 内容矩阵生成器
@@ -513,13 +639,15 @@ def generate_content_matrix(
 
     # 平台适配
     adapter = PlatformAdapter()
-    all_platforms = platforms or ["小红书", "抖音", "B站", "公众号"]
+    all_platforms = platforms or ["小红书", "抖音", "B站", "公众号", "知乎", "微博"]
 
     platform_map = {
         "小红书": adapter.xiaohongshu,
         "抖音": adapter.douyin,
         "B站": adapter.bilibili,
         "公众号": adapter.wechat,
+        "知乎": adapter.zhihu,
+        "微博": adapter.weibo,
     }
 
     matrix = {
@@ -598,6 +726,190 @@ def matrix_to_markdown(matrix: Dict) -> str:
 
 
 # ============================================================
+# CSV 导出
+# ============================================================
+
+def matrix_to_csv(matrix: Dict) -> str:
+    """将矩阵转为CSV格式（适合客户报告和Excel查看）"""
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    # 表头
+    writer.writerow([
+        "序号", "平台", "内容类型", "标题", "正文", "标签", "时长/建议", "发布提示"
+    ])
+
+    idx = 1
+    for plat, contents in matrix["platforms"].items():
+        for c in contents:
+            writer.writerow([
+                idx,
+                c.get("platform", plat),
+                c.get("type", ""),
+                c.get("title", ""),
+                c.get("content", "").replace("\n", "\\n"),
+                ", ".join(c.get("tags", [])),
+                c.get("duration", ""),
+                c.get("tips", ""),
+            ])
+            idx += 1
+
+    return output.getvalue()
+
+
+# ============================================================
+# 批量处理
+# ============================================================
+
+def batch_generate(
+    articles: List[Dict],
+    platforms: Optional[List[str]] = None
+) -> List[Dict]:
+    """
+    批量处理多篇文章
+
+    Args:
+        articles: [{"title": "...", "content": "...", "keywords": [...]}]
+        platforms: 目标平台列表
+
+    Returns:
+        [{"source_title": "...", "matrix": {...}}]
+    """
+    results = []
+    for article in articles:
+        title = article.get("title", f"文章{len(results)+1}")
+        content = article.get("content", "")
+        keywords = article.get("keywords", None)
+
+        if not content.strip():
+            continue
+
+        matrix = generate_content_matrix(content, keywords, platforms)
+        results.append({
+            "source_title": title,
+            "matrix": matrix,
+        })
+
+    return results
+
+
+def batch_to_csv(batch_results: List[Dict]) -> str:
+    """批量结果导出为CSV"""
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    writer.writerow([
+        "来源文章", "序号", "平台", "内容类型", "标题", "正文", "标签", "时长/建议"
+    ])
+
+    for result in batch_results:
+        source = result["source_title"]
+        matrix = result["matrix"]
+        idx = 1
+        for plat, contents in matrix["platforms"].items():
+            for c in contents:
+                writer.writerow([
+                    source, idx,
+                    c.get("platform", plat),
+                    c.get("type", ""),
+                    c.get("title", ""),
+                    c.get("content", "").replace("\n", "\\n"),
+                    ", ".join(c.get("tags", [])),
+                    c.get("duration", ""),
+                ])
+                idx += 1
+
+    return output.getvalue()
+
+
+# ============================================================
+# 内容日历生成
+# ============================================================
+
+def generate_content_calendar(
+    matrix: Dict,
+    start_date: Optional[str] = None,
+    posts_per_day: int = 3
+) -> List[Dict]:
+    """
+    根据内容矩阵生成发布日历
+
+    Args:
+        matrix: 内容矩阵
+        start_date: 开始日期 (YYYY-MM-DD)，默认明天
+        posts_per_day: 每天发布条数
+
+    Returns:
+        [{"date": "2026-02-24", "time": "09:00", "platform": "...", "title": "...", "type": "..."}]
+    """
+    if start_date:
+        current = datetime.strptime(start_date, "%Y-%m-%d")
+    else:
+        current = datetime.now() + timedelta(days=1)
+
+    # 最佳发布时间（按平台）
+    best_times = {
+        "小红书": ["12:00", "18:00", "21:00"],
+        "抖音": ["07:00", "12:00", "18:00", "22:00"],
+        "B站": ["17:00", "20:00"],
+        "公众号": ["08:00", "12:00", "20:00"],
+        "知乎": ["10:00", "14:00", "21:00"],
+        "微博": ["09:00", "12:00", "18:00", "22:00"],
+    }
+
+    # 收集所有内容
+    all_content = []
+    for plat, contents in matrix["platforms"].items():
+        for c in contents:
+            all_content.append({
+                "platform": plat,
+                "title": c.get("title", ""),
+                "type": c.get("type", ""),
+            })
+
+    # 分配到日历
+    calendar = []
+    content_idx = 0
+    while content_idx < len(all_content):
+        day_posts = all_content[content_idx:content_idx + posts_per_day]
+        for i, post in enumerate(day_posts):
+            plat = post["platform"]
+            times = best_times.get(plat, ["12:00"])
+            time_slot = times[i % len(times)]
+
+            calendar.append({
+                "date": current.strftime("%Y-%m-%d"),
+                "weekday": ["周一", "周二", "周三", "周四", "周五", "周六", "周日"][current.weekday()],
+                "time": time_slot,
+                "platform": plat,
+                "title": post["title"],
+                "type": post["type"],
+            })
+
+        content_idx += posts_per_day
+        current += timedelta(days=1)
+
+    return calendar
+
+
+def calendar_to_markdown(calendar: List[Dict]) -> str:
+    """日历转Markdown表格"""
+    lines = [
+        "# 📅 内容发布日历",
+        "",
+        "| 日期 | 星期 | 时间 | 平台 | 类型 | 标题 |",
+        "|------|------|------|------|------|------|",
+    ]
+    for item in calendar:
+        title_short = item["title"][:30] + ("..." if len(item["title"]) > 30 else "")
+        lines.append(
+            f"| {item['date']} | {item['weekday']} | {item['time']} | "
+            f"{item['platform']} | {item['type']} | {title_short} |"
+        )
+    return "\n".join(lines)
+
+
+# ============================================================
 # CLI 入口
 # ============================================================
 
@@ -617,6 +929,21 @@ def main():
         matrix = generate_content_matrix(content, keywords)
         save_matrix(matrix, output)
         save_matrix(matrix, output, fmt="markdown")
+
+        # 同时生成CSV
+        csv_data = matrix_to_csv(matrix)
+        csv_path = Path(output).with_suffix('.csv')
+        with open(csv_path, 'w', encoding='utf-8-sig') as f:
+            f.write(csv_data)
+        print(f"✓ CSV已保存：{csv_path}")
+
+        # 生成内容日历
+        calendar = generate_content_calendar(matrix)
+        cal_md = calendar_to_markdown(calendar)
+        cal_path = Path(output).parent / "content_calendar.md"
+        with open(cal_path, 'w', encoding='utf-8') as f:
+            f.write(cal_md)
+        print(f"✓ 内容日历已保存：{cal_path}")
     else:
         # 演示模式
         demo_content = """
@@ -633,7 +960,7 @@ def main():
 技术实现不难，核心是选择合适的Python库和设计好工作流程。我已经开源了完整代码，可以直接使用。
         """
 
-        print("\n🚀 SEO内容矩阵生成器 v2.0")
+        print("\n🚀 SEO内容矩阵生成器 v3.0")
         print("=" * 50)
 
         matrix = generate_content_matrix(demo_content)
@@ -645,6 +972,19 @@ def main():
 
         save_matrix(matrix, "output/content_matrix.json")
         save_matrix(matrix, "output/content_matrix.json", fmt="markdown")
+
+        # CSV导出
+        csv_data = matrix_to_csv(matrix)
+        with open("output/content_matrix.csv", 'w', encoding='utf-8-sig') as f:
+            f.write(csv_data)
+        print(f"✓ CSV已保存：output/content_matrix.csv")
+
+        # 内容日历
+        calendar = generate_content_calendar(matrix)
+        cal_md = calendar_to_markdown(calendar)
+        with open("output/content_calendar.md", 'w', encoding='utf-8') as f:
+            f.write(cal_md)
+        print(f"✓ 内容日历已保存：output/content_calendar.md")
 
         # 预览
         print("\n" + "=" * 50)

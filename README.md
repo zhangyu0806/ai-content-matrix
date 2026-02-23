@@ -1,84 +1,82 @@
-# AI内容矩阵生成器
+# AI内容矩阵生成器 v3.0 🚀
 
-> 1篇长文 → 10条短内容，自动适配小红书、抖音、B站、公众号
+> 1篇长文 → 15+条多平台短内容，自动适配6大平台
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Python 3.8+](https://img.shields.io/badge/Python-3.8+-green.svg)](https://python.org)
+[![Python](https://img.shields.io/badge/Python-3.8+-blue)](https://python.org)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![Platforms](https://img.shields.io/badge/平台-6个-orange)]()
 
-## ✨ 核心功能
+## 🎯 核心功能
 
-- 🧠 **智能拆解**：自动提取长文核心观点（TF-IDF + 位置权重算法）
-- 📱 **4平台适配**：小红书图文 / 抖音脚本 / B站教程 / 公众号长文
-- 🔑 **SEO关键词**：自动提取高频关键词，优化标题和标签
-- ⚡ **零依赖**：核心功能纯Python标准库，无需安装额外包
-- 🌐 **静态演示站**：GitHub Pages 直接部署，无需服务器
+- **智能拆解**：AI自动识别长文核心观点，提取10个关键要点
+- **6平台适配**：小红书 / 抖音 / B站 / 公众号 / 知乎 / 微博
+- **SEO优化**：TF-IDF关键词提取 + 4种标题优化风格
+- **批量处理**：多篇文章一次生成，适合团队使用
+- **多格式导出**：JSON / Markdown / CSV（Excel兼容）
+- **内容日历**：自动生成发布排期，含最佳发布时间
+
+## 📱 支持平台
+
+| 平台 | 内容类型 | 特色 |
+|------|---------|------|
+| 小红书 | 图文笔记 | emoji丰富、标签多、种草风 |
+| 抖音 | 短视频脚本 | 口语化、节奏快、强hook |
+| B站 | 知识视频 | 深度教程、知识输出 |
+| 公众号 | 深度长文+短推文 | 排版精美、引导关注 |
+| 知乎 | 专业回答+想法 | 数据支撑、专业深度 |
+| 微博 | 正文+长文 | 话题标签、短平快 |
 
 ## 🚀 快速开始
 
 ```bash
-git clone https://github.com/zhangyu0806/ai-content-matrix.git
-cd ai-content-matrix
+# 安装依赖
+pip install -r requirements.txt
 
-# 直接运行（无需安装依赖）
+# 演示模式
 python3 content_splitter.py
 
-# 从文件生成
-python3 content_splitter.py my_article.txt "AI,自动化,效率" output/result.json
+# 处理文件
+python3 content_splitter.py article.txt
 
-# 启动Web API（需要Flask）
-pip install flask
+# 指定关键词
+python3 content_splitter.py article.txt "AI,效率,自动化"
+
+# 启动Web API
 python3 app.py
 ```
 
-## 📊 效果演示
-
-输入1篇1000字文章，自动生成：
-
-| 平台 | 数量 | 格式 |
-|------|------|------|
-| 小红书 | 4-5条 | emoji图文 + 标签 |
-| 抖音 | 3-4条 | 30-45秒短视频脚本 |
-| B站 | 1-2条 | 5-8分钟知识视频 |
-| 公众号 | 2条 | 深度长文 + 短推文 |
-
-**总计：10-13条内容，5分钟完成**
-
-## 🌐 在线演示
-
-部署到 GitHub Pages 后访问：`https://zhangyu0806.github.io/ai-content-matrix`
-
-## 🛠️ API 文档
+## 📡 API接口
 
 ```bash
 # 生成内容矩阵（JSON）
-POST /api/generate
-{
-  "content": "你的长文内容...",
-  "keywords": ["关键词1", "关键词2"],  // 可选，自动提取
-  "platforms": ["小红书", "抖音"]       // 可选，默认全部
-}
+curl -X POST http://localhost:5000/api/generate \
+  -H "Content-Type: application/json" \
+  -d '{"content": "你的长文内容..."}'
 
-# 生成内容矩阵（Markdown）
-POST /api/generate/markdown
+# 生成CSV（Excel导入）
+curl -X POST http://localhost:5000/api/generate/csv \
+  -d '{"content": "你的长文内容..."}'
 
-# 健康检查
-GET /api/health
+# 批量处理
+curl -X POST http://localhost:5000/api/batch \
+  -d '{"articles": [{"title": "文章1", "content": "..."}]}'
+
+# 内容日历
+curl -X POST http://localhost:5000/api/calendar \
+  -d '{"content": "...", "start_date": "2026-02-24", "posts_per_day": 3}'
 ```
 
-## 📈 定价
+## 💰 商业模式
 
-| 方案 | 价格 | 内容量 |
-|------|------|--------|
-| 基础版 | ¥5,000/月 | 50条/月 |
-| 专业版 | ¥8,000/月 | 100条/月 |
-| 企业版 | ¥15,000/月 | 200条/月 + 定制 |
+| 方案 | 价格 | 内容量 | 平台 |
+|------|------|--------|------|
+| 基础版 | ¥3,000/月 | 50条 | 3个平台 |
+| 专业版 | ¥5,000/月 | 100条 | 6个平台 |
+| 企业版 | ¥10,000/月 | 200条 | 全平台+定制 |
 
-> 💡 ROI：人工写100条内容需要¥50,000+，AI方案只需¥8,000，节省84%成本
+## 🏷️ 关键词
 
-## 🤝 合作咨询
-
-- 📧 邮件：[联系方式见 Issues]
-- 💬 免费试用3天，满意再付款
+`AI内容生成` `内容矩阵` `内容营销` `新媒体运营` `一键分发` `多平台内容` `SEO优化` `小红书运营` `抖音运营` `B站运营` `公众号运营` `知乎运营` `微博运营` `内容自动化` `AI写作` `content marketing` `social media automation`
 
 ## 📄 License
 

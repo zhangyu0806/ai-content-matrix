@@ -85,10 +85,10 @@ footer{text-align:center;padding:40px 20px;color:#444;font-size:0.85em}
     <div style="margin-bottom:16px">
       <span class="badge">🚀 AI驱动</span>
       <span class="badge">⚡ 5分钟生成</span>
-      <span class="badge">📱 4大平台</span>
+      <span class="badge">📱 6大平台</span>
     </div>
     <h1>AI内容矩阵生成器</h1>
-    <p>1篇长文 → 10条短内容<br>自动适配小红书、抖音、B站、公众号</p>
+    <p>1篇长文 → 15+条短内容<br>自动适配小红书、抖音、B站、公众号、知乎、微博</p>
     <a href="#demo" style="display:inline-block;background:linear-gradient(135deg,#00d4ff,#7b2ff7);color:#fff;padding:14px 36px;border-radius:12px;text-decoration:none;font-weight:600;font-size:1.05em">立即体验 →</a>
   </div>
 </div>
@@ -106,8 +106,8 @@ footer{text-align:center;padding:40px 20px;color:#444;font-size:0.85em}
       </div>
       <div class="feature-card">
         <div class="feature-icon">📱</div>
-        <h3>4平台适配</h3>
-        <p>自动生成小红书图文、抖音脚本、B站教程、公众号长文，格式完全匹配</p>
+        <h3>6平台适配</h3>
+        <p>自动生成小红书图文、抖音脚本、B站教程、公众号长文、知乎回答、微博正文，格式完全匹配</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">🔑</div>
@@ -141,13 +141,15 @@ footer{text-align:center;padding:40px 20px;color:#444;font-size:0.85em}
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:#aaa;font-size:0.9em"><input type="checkbox" value="抖音" checked> 抖音</label>
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:#aaa;font-size:0.9em"><input type="checkbox" value="B站" checked> B站</label>
             <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:#aaa;font-size:0.9em"><input type="checkbox" value="公众号" checked> 公众号</label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:#aaa;font-size:0.9em"><input type="checkbox" value="知乎" checked> 知乎</label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:#aaa;font-size:0.9em"><input type="checkbox" value="微博" checked> 微博</label>
           </div>
           <button class="btn-primary" onclick="generateContent()">🚀 生成内容矩阵</button>
         </div>
         <div class="output-area" id="outputArea">
           <div class="empty-state">
             <div class="icon">✨</div>
-            <p>输入长文后点击生成<br>即可看到10条跨平台内容</p>
+            <p>输入长文后点击生成<br>即可看到15+条跨平台内容</p>
           </div>
         </div>
       </div>
@@ -160,7 +162,7 @@ footer{text-align:center;padding:40px 20px;color:#444;font-size:0.85em}
     <div class="pricing">
       <div class="price-card">
         <div class="plan">基础版</div>
-        <div class="price">¥5,000<span>/月</span></div>
+        <div class="price">¥3,000<span>/月</span></div>
         <div class="desc">适合个人创作者</div>
         <ul>
           <li>50条内容/月</li>
@@ -172,26 +174,28 @@ footer{text-align:center;padding:40px 20px;color:#444;font-size:0.85em}
       </div>
       <div class="price-card featured">
         <div class="plan">⭐ 专业版（推荐）</div>
-        <div class="price">¥8,000<span>/月</span></div>
+        <div class="price">¥5,000<span>/月</span></div>
         <div class="desc">适合新媒体团队</div>
         <ul>
           <li>100条内容/月</li>
-          <li>4个平台适配</li>
+          <li>6个平台适配</li>
           <li>SEO标题优化</li>
-          <li>数据统计报告</li>
+          <li>内容日历生成</li>
+          <li>CSV报告导出</li>
           <li>优先响应支持</li>
         </ul>
         <button class="btn-primary" onclick="contact()">立即咨询</button>
       </div>
       <div class="price-card">
         <div class="plan">企业版</div>
-        <div class="price">¥15,000<span>/月</span></div>
-        <div class="desc">适合电商/品牌方</div>
+        <div class="price">¥10,000<span>/月</span></div>
+        <div class="desc">适合MCN/品牌方</div>
         <ul>
           <li>200条内容/月</li>
           <li>全平台适配</li>
-          <li>定制化模板</li>
+          <li>批量处理模式</li>
           <li>API接口对接</li>
+          <li>定制化模板</li>
           <li>专属客户经理</li>
         </ul>
         <button class="btn-outline" onclick="contact()">定制方案</button>
@@ -300,6 +304,45 @@ function genWechat(points, kws) {
   return [article];
 }
 
+function genZhihu(points, kws) {
+  const result = [];
+  if (points.length > 0) {
+    result.push({
+      platform: '知乎', type: '专业回答',
+      title: `如何评价${kws[0]||'这个方法'}？`,
+      content: `谢邀。\n\n先说结论：掌握正确的方法，效率可以提升10倍以上。\n\n${points.slice(0,4).map((p,i)=>`**${i+1}. ${p.slice(0,20)}**\n${p}`).join('\n\n')}\n\n---\n如果觉得有用，点个赞同让更多人看到 👍`,
+      tags: kws.slice(0,4)
+    });
+  }
+  if (points.length >= 2) {
+    result.push({
+      platform: '知乎', type: '知乎想法',
+      title: `关于${kws[0]||'效率'}的思考`,
+      content: `💡 今天的一个发现：\n\n${points[0]}\n\n延伸思考：${points[1].slice(0,50)}...\n\n${kws.slice(0,3).map(k=>'#'+k).join(' ')}`,
+      tags: kws.slice(0,3)
+    });
+  }
+  return result;
+}
+
+function genWeibo(points, kws) {
+  const result = points.slice(0,3).map((p, i) => ({
+    platform: '微博', type: '微博正文',
+    title: `${emojis[i]} ${p.slice(0,25)}`,
+    content: `#${kws[0]||'干货分享'}# ${emojis[i]}\n\n${p.slice(0,100)}${p.length>100?'...':''}\n\n${kws.slice(0,3).map(k=>'#'+k+'#').join(' ')}\n\n转发给需要的朋友～`,
+    tags: kws.slice(0,3)
+  }));
+  if (points.length >= 4) {
+    result.push({
+      platform: '微博', type: '微博长文',
+      title: `【干货】${kws[0]||'效率'}提升完全指南`,
+      content: `【干货】${kws[0]||'效率'}提升完全指南\n\n${points.slice(0,6).map(p=>'✅ '+p).join('\n')}\n\n---\n觉得有用就转发收藏吧！\n${kws.slice(0,4).map(k=>'#'+k+'#').join(' ')}`,
+      tags: kws.slice(0,4)
+    });
+  }
+  return result;
+}
+
 function generateContent() {
   const text = document.getElementById('inputText').value.trim();
   if (!text) { alert('请先输入长文内容！'); return; }
@@ -322,6 +365,8 @@ function generateContent() {
     if (checkedPlatforms.includes('抖音')) allContent.push(...genDouyin(points, kws));
     if (checkedPlatforms.includes('B站')) allContent.push(...genBilibili(points, kws));
     if (checkedPlatforms.includes('公众号')) allContent.push(...genWechat(points, kws));
+    if (checkedPlatforms.includes('知乎')) allContent.push(...genZhihu(points, kws));
+    if (checkedPlatforms.includes('微博')) allContent.push(...genWeibo(points, kws));
 
     const platformGroups = {};
     allContent.forEach(c => {
