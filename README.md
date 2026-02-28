@@ -4,6 +4,11 @@
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Demo](https://img.shields.io/badge/Demo-在线体验-00d4ff)](https://zhangyu0806.github.io/ai-content-matrix/)
+
+## 🌐 在线演示
+
+👉 **[点击体验在线Demo](https://zhangyu0806.github.io/ai-content-matrix/)** — 无需安装，直接在浏览器中使用
 
 ## 📖 简介
 
